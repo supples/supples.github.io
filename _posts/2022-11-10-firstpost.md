@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 첫번째 글🐾
-subtitle: 지금은 새
+subtitle: 지금은 새벽 한시 사십오분
 categories: markdown
 tags: [test]
 ---
