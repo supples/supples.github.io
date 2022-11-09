@@ -24,9 +24,9 @@
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
 
-title: Your awesome title
-email: your-email@domain.com
-author: GitHub User
+title: supples_Blog
+email: 8800subin@naver.com
+author: supples
 
 # Copyright setting
 # You can use any html code, currently below placeholders are available:
@@ -111,7 +111,8 @@ yat:
 #
 # Custom color as below:
 # theme_color: "#882250"
-
+theme : jekyll-theme-yat
+remote_theme: "jeffreytse/jekyll-theme-yat"
 # You can choose a brand color
 # Default brand colors as below:
 # orangered: #ff5100
