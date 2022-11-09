@@ -111,7 +111,7 @@ yat:
 #
 # Custom color as below:
 # theme_color: "#882250"
-theme : jekyll-theme-yat
+# theme : jekyll-theme-yat
 remote_theme: "jeffreytse/jekyll-theme-yat"
 # You can choose a brand color
 # Default brand colors as below:
