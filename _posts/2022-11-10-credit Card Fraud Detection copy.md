@@ -94,5 +94,7 @@ df.head()
 :
 ### 필사 내용
 [1] https://rebel-death-381.notion.site/Credit-Fraud-Detector-1-68aa1792e7254b0fbc8ddcd6854d9129
+
 [2] https://rebel-death-381.notion.site/Credit-Fraud-Detector-2-991427a5f4ca4c60a62811130a0ba651
-[2] https://rebel-death-381.notion.site/Credit-Fraud-Detector-3-6a15bd27ab9149659c23bd732a80eb54
+
+[3] https://rebel-death-381.notion.site/Credit-Fraud-Detector-3-6a15bd27ab9149659c23bd732a80eb54
