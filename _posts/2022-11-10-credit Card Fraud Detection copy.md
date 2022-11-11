@@ -92,7 +92,8 @@ df.head()
 
 
 :
-### 필사 내용
+### 분석 내용 정리본
+
 1. [데이터 이해][11]
 2. [t-SNE,Classifiers, 로지스틱 회귀, SMOTE Technique][22]
 3. [테스팅][33]
