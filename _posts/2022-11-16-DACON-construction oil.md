@@ -71,6 +71,7 @@ test = pd.read_csv('./test.csv')
 
 ## Data Preprocessing
 ### 1. 결측치 처리
+
 * 범주형/수시형으로 features 구분
 
 
