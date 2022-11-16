@@ -249,7 +249,7 @@ def train(model, optimizer, train_loader, val_loader, scheduler, device):
 
 - loss = 손실함수 값
 
-### 코드순서
+### 코드 순서
 
 - 예측값 구하기
 - loss 구하기
