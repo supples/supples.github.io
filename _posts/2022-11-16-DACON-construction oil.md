@@ -168,7 +168,7 @@ val_loader = DataLoader(val_dataset, batch_size = CFG['BATCH_SIZE'], shuffle=Fal
 
 - 모델 학습
 
-### 신경망 구현  
+### * 신경망 구현  
 - 단순선형회귀(Linear), 배치정규화(BatchNormld- 1차원), ReLU, Sigmoid 
 - 순전파 이용
 
