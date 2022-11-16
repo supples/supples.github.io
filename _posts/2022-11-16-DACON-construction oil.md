@@ -7,7 +7,8 @@ tags: [STUDY]
 ---
 
 
-## 목표 : 건설기계 오일을 **정상**:0 과 **이상**:1 로 분류하자
+## 목표 
+건설기계 오일을 **정상**:0 과 **이상**:1 로 분류하자
 ## Import
 
 ```python
@@ -36,15 +37,19 @@ device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cp
 
 ```
 
-```python
+
 ## Hyperparameter setting
+```python
 CFG = {
     'EPOCHS': 20,
     'LEARNING_RATE':1e-2,
     'BATCH_SIZE':256,
     'SEED':30
 }
+```
+
 ## Fixed RandomSeed
+```python
 * pytorch seed 고정
 def seed_everything(seed):
     random.seed(seed)
@@ -65,33 +70,44 @@ test = pd.read_csv('./test.csv')
 ```
 
 ## Data Preprocessing
-#### 1. 결측치 처리
+### 1. 결측치 처리
 * 범주형/수시형으로 features 구분
 
+
+```python
 categorical_features = ['COMPONENT_ARBITRARY', 'YEAR'] 
 # Inference(실제 진단 환경)에 사용하는 컬럼
 test_stage_features = ['COMPONENT_ARBITRARY', 'ANONYMOUS_1', 'YEAR' , 'ANONYMOUS_2', 'AG', 'CO', 'CR', 'CU', 'FE', 'H2O', 'MN', 'MO', 'NI', 'PQINDEX', 'TI', 'V', 'V40', 'ZN']
+```
 
 * 결측치 처리 : null 값을 0으로
 
+```python
 train = train.fillna(0)
 test = test.fillna(0)
-#### 2. Train / Validation 분할
+```
+
+### 2. Train / Validation 분할
 * train_X, train_y : train data
 * val_X, val_y : Verification data
 
 * test : test data
 
- all_X = train.drop(['ID', 'Y_LABEL'], axis = 1)
+```python
+all_X = train.drop(['ID', 'Y_LABEL'], axis = 1)
 all_y = train['Y_LABEL']
 
 test = test.drop(['ID'], axis = 1)
 
 train_X, val_X, train_y, val_y = train_test_split(all_X, all_y, test_size=0.2, random_state=CFG['SEED'], stratify=all_y)
 all_X
-#### 3. Data label-encoding, scaling
+```
+
+### 3. Data label-encoding, scaling
 - 수치형 : 표준화(standard)로 scaling
 - 범주형 : 문자 수치화(인코딩)로 scaling
+
+```python
 def get_values(value):
     return value.values.reshape(-1, 1)
 
@@ -110,7 +126,10 @@ for col in categorical_features:
     if col in test.columns:
         test[col] = le.transform(test[col])
 train_X.head()
+
+```
 ## CustomDataset
+```python
 사용자 정의 데이터셋 만들기ㅣ
 class CustomDataset(Dataset):
     def __init__(self, data_X, data_y, distillation=False):
@@ -142,14 +161,17 @@ val_dataset = CustomDataset(val_X, val_y, False)
 - API Dataloder
 train_loader = DataLoader(train_dataset, batch_size = CFG['BATCH_SIZE'], shuffle=True)
 val_loader = DataLoader(val_dataset, batch_size = CFG['BATCH_SIZE'], shuffle=False)
+```
 
 ## Define Teacher Model
 
 - 모델 학습
 
-###신경망 구현  
+### 신경망 구현  
 - 단순선형회귀(Linear), 배치정규화(BatchNormld- 1차원), ReLU, Sigmoid 
 - 순전파 이용
+
+```python
 class Teacher(nn.Module):
     def __init__(self):
         super(Teacher, self).__init__()
@@ -170,6 +192,8 @@ class Teacher(nn.Module):
     def forward(self, x):
         output = self.classifier(x)
         return output
+```
+
 ## Teacher Train / Validation
 * 가중치 구하기
 
@@ -181,6 +205,7 @@ class Teacher(nn.Module):
 * 손실함수 append
 * 손실함수 값, 점수 구하기
 
+```python
 def train(model, optimizer, train_loader, val_loader, scheduler, device):
     model.to(device)
 
@@ -219,9 +244,11 @@ def train(model, optimizer, train_loader, val_loader, scheduler, device):
             best_score = val_score
         
     return best_model 
+```
+
 - loss = 손실함수 값
 
-###코드순서
+### 코드순서
 
 - 예측값 구하기
 - loss 구하기
@@ -230,6 +257,8 @@ def train(model, optimizer, train_loader, val_loader, scheduler, device):
 
 - 예측라벨과 실제 라벨 비교
 - return val_loss, val_f1 : Verification data의 값
+
+```python
 def competition_metric(true, pred):
     return f1_score(true, pred, average="macro")
 
@@ -258,16 +287,23 @@ def validation_teacher(model, val_loader, criterion, device):
         pred_labels = np.where(np.array(pred_labels) > threshold, 1, 0)
         val_f1 = competition_metric(true_labels, pred_labels)
     return val_loss, val_f1   
+```
+
 ## Run (Teacher Model)
+
+```python
 model = Teacher()
 model.eval()
 optimizer = torch.optim.Adam(model.parameters(), lr=CFG['LEARNING_RATE'])
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=1, threshold_mode='abs',min_lr=1e-8, verbose=True)
 
 teacher_model = train(model, optimizer, train_loader, val_loader, scheduler, device)
+```
+
 ## Define Student Model
 
 - 학습 모델 정의
+```python
 class Student(nn.Module):
     def __init__(self):
         super(Student, self).__init__()
@@ -288,10 +324,15 @@ class Student(nn.Module):
     def forward(self, x):
         output = self.classifier(x)
         return output
+
+```
+
 ## Define Knowledge distillation Loss
 
 - 지식 증류 손실 함수 값 정의
 - BCELoss 
+
+```python
 def distillation(student_logits, labels, teacher_logits, alpha):
     distillation_loss = nn.BCELoss()(student_logits, teacher_logits)
     student_loss = nn.BCELoss()(student_logits, labels.reshape(-1, 1))
@@ -305,7 +346,10 @@ def distill_loss(output, target, teacher_output, loss_fn=distillation, opt=optim
         opt.step()
 
     return loss_b.item()
+ ```
+
 ## Student Train / Validation
+```python
 def student_train(s_model, t_model, optimizer, train_loader, val_loader, scheduler, device):
     s_model.to(device)
     t_model.to(device)
@@ -344,6 +388,8 @@ def student_train(s_model, t_model, optimizer, train_loader, val_loader, schedul
             best_score = val_score
         
     return best_model
+```
+```python
 def validation_student(s_model, t_model, val_loader, criterion, device):
     s_model.eval()
     t_model.eval()
@@ -371,8 +417,11 @@ def validation_student(s_model, t_model, val_loader, criterion, device):
         
         pred_labels = np.where(np.array(pred_labels) > threshold, 1, 0)
         val_f1 = competition_metric(true_labels, pred_labels)
-    return val_loss, val_f1    
+    return val_loss, val_f1   
+```
+
 ## Run (Student Model)
+```python
 train_dataset = CustomDataset(train_X, train_y, True)
 val_dataset = CustomDataset(val_X, val_y, True)
 
@@ -385,7 +434,11 @@ optimizer = torch.optim.Adam(student_model.parameters(), lr=CFG['LEARNING_RATE']
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=1, threshold_mode='abs',min_lr=1e-8, verbose=True)
 
 best_student_model = student_train(student_model, teacher_model, optimizer, train_loader, val_loader, scheduler, device)
+
+```
+
 ## Choose Inference Threshold
+```python
 def choose_threshold(model, val_loader, device):
     model.to(device)
     model.eval()
@@ -416,7 +469,10 @@ def choose_threshold(model, val_loader, device):
     return best_thr, best_score
 best_threshold, best_score = choose_threshold(best_student_model, val_loader, device)
 print(f'Best Threshold : [{best_threshold}], Score : [{best_score:.5f}]')
+```
+
 ## Inference
+```python
 test_datasets = CustomDataset(test, None, False)
 test_loaders = DataLoader(test_datasets, batch_size = CFG['BATCH_SIZE'], shuffle=False)
 def inference(model, test_loader, threshold, device):
@@ -436,9 +492,12 @@ def inference(model, test_loader, threshold, device):
     print('Done.')
     return test_predict
 preds = inference(best_student_model, test_loaders, best_threshold, device)
+```
 
 ## Submit
+```python
 submit = pd.read_csv('./sample_submission.csv')
 submit['Y_LABEL'] = preds
 submit.head()
 submit.to_csv('./submit.csv', index=False)
+```
