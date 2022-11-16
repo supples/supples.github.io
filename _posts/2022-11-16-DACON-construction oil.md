@@ -1,15 +1,17 @@
-
 ---
 layout: post
 title: 건설기계 오일 상태 분류 AI 경진대회
 subtitle: DACON_BASELINE STUDY
 categories: DACON
-tags: [test]
+tags: [STUDY]
 ---
 
 
 ## 목표 : 건설기계 오일을 **정상**:0 과 **이상**:1 로 분류하자
 ## Import
+
+```python
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -31,6 +33,10 @@ import warnings
 warnings.filterwarnings(action='ignore') 
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
+```
+
+```python
 ## Hyperparameter setting
 CFG = {
     'EPOCHS': 20,
@@ -39,7 +45,7 @@ CFG = {
     'SEED':30
 }
 ## Fixed RandomSeed
-- pytorch seed 고정
+* pytorch seed 고정
 def seed_everything(seed):
     random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
@@ -50,26 +56,33 @@ def seed_everything(seed):
     torch.backends.cudnn.benchmark = True
 
 seed_everything(CFG['SEED'])
+```
+
 ## Data Load
+```python
 train = pd.read_csv('./train.csv')
 test = pd.read_csv('./test.csv')
+```
+
 ## Data Preprocessing
 #### 1. 결측치 처리
-- 범주형/수시형으로 features 구분
+* 범주형/수시형으로 features 구분
 
 categorical_features = ['COMPONENT_ARBITRARY', 'YEAR'] 
 # Inference(실제 진단 환경)에 사용하는 컬럼
 test_stage_features = ['COMPONENT_ARBITRARY', 'ANONYMOUS_1', 'YEAR' , 'ANONYMOUS_2', 'AG', 'CO', 'CR', 'CU', 'FE', 'H2O', 'MN', 'MO', 'NI', 'PQINDEX', 'TI', 'V', 'V40', 'ZN']
 
-- 결측치 처리 : null 값을 0으로
+* 결측치 처리 : null 값을 0으로
+
 train = train.fillna(0)
 test = test.fillna(0)
 #### 2. Train / Validation 분할
-- train_X, train_y : train data
-- val_X, val_y : Verification data
+* train_X, train_y : train data
+* val_X, val_y : Verification data
 
-- test : test data
-all_X = train.drop(['ID', 'Y_LABEL'], axis = 1)
+* test : test data
+
+ all_X = train.drop(['ID', 'Y_LABEL'], axis = 1)
 all_y = train['Y_LABEL']
 
 test = test.drop(['ID'], axis = 1)
